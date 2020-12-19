@@ -1,9 +1,11 @@
 package com.allens.okdatastore
 
+import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesKey
+import androidx.datastore.preferences.core.preferencesSetKey
 import kotlinx.coroutines.flow.Flow
 import java.util.*
 
@@ -14,6 +16,7 @@ interface Editor {
     fun putLong(key: String, value: Long): Editor
     fun putFloat(key: String, value: Float): Editor
     fun putBoolean(key: String, value: Boolean): Editor
+    fun putStringSet(key: String, values: Set<String>): Editor
 
     suspend fun commit()
 }
@@ -24,6 +27,7 @@ interface EditGet {
     suspend fun getBoolean(key: String, default: Boolean): Flow<Boolean>
     suspend fun getFloat(key: String, default: Float): Flow<Float>
     suspend fun getLong(key: String, default: Long): Flow<Long>
+    suspend fun getStringSet(key: String, default: Set<String>): Flow<Set<String>>
 }
 
 class EditorImpl(private val dataStore: DataStore<Preferences>) : Editor {
@@ -56,10 +60,18 @@ class EditorImpl(private val dataStore: DataStore<Preferences>) : Editor {
         return this
     }
 
+    override fun putStringSet(key: String, values: Set<String>): Editor {
+        mModified[key] = values
+        return this
+    }
+
+
     override suspend fun commit() {
         dataStore.edit { dataStore ->
             mModified.forEach {
-                println("commit key:${it.key} value:${it.value}")
+                println("===========llllll ${it.value::class}")
+                println("===========llllll ${it.value::class.java}")
+                println("===========llllll ${it.value.javaClass}")
                 when (it.value::class) {
                     Int::class -> {
                         dataStore[preferencesKey<Int>(it.key)] = it.value as Int
@@ -78,6 +90,10 @@ class EditorImpl(private val dataStore: DataStore<Preferences>) : Editor {
                     }
                     Double::class -> {
                         dataStore[preferencesKey<Double>(it.key)] = it.value as Double
+                    }
+                    //todo 这里有一个疑问 为什么不是set
+                    LinkedHashSet::class -> {
+                        dataStore[preferencesSetKey<String>(it.key)] = setOf((it.value as Set<*>).toString())
                     }
                 }
             }

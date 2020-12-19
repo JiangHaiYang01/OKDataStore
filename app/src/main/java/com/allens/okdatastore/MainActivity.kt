@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
                     .putBoolean("isBody", true)
                     .putFloat("size", 20f)
                     .putLong("long", 100L)
+                    .putStringSet("setData", setOf("a", "b", "c", "d"))
                     .commit()
 
             }
@@ -43,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         })
         viewBinding.linear.addView(createButton("Get") {
             runBlocking {
-                okDataStore.getLong("long", 10)
+                okDataStore.getStringSet("setData", setOf("1","2"))
                     .collect {
                         println("data:$it")
                     }

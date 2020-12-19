@@ -117,4 +117,14 @@ class OKDataStoreImpl(name: String, context: Context) : OKDataStore {
             }
         }
     }
+
+    override suspend fun getStringSet(key: String, default: Set<String>): Flow<Set<String>> {
+        return getValueFormKey(key).map {
+            if (it.second == null) {
+                default
+            } else {
+                it.second as Set<String>
+            }
+        }
+    }
 }
