@@ -2,13 +2,11 @@ package com.allens.okdatastore
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.datastore.preferences.core.Preferences
 import com.allens.okdatastore.databinding.ActivityMainBinding
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
     private val viewBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -19,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         val okDataStore = createOkDataStore("user")
 
         viewBinding.linear.addView(createButton("add") {
-            GlobalScope.launch {
+            runBlocking {
                 okDataStore
                     .edit()
                     .putString("name", "江海洋")
@@ -32,18 +30,24 @@ class MainActivity : AppCompatActivity() {
             }
         })
         viewBinding.linear.addView(createButton("Flow") {
-            GlobalScope.launch {
-                okDataStore
-                    .flow()
-                    .onEach { pref ->
-                        pref.asMap().forEach { map ->
-                            println("key:${map.key.name} value:${map.value}")
+            runBlocking {
+                okDataStore.flow()
+                    .onCompletion { println("complete") }
+                    .map { it.asMap() }
+                    .collect {
+                        it.forEach { map ->
+                            println("collect :key:${map.key.name} value:${map.value}")
                         }
                     }
-                    .catch { catch ->
-                        println("catch:${catch.message}")
+            }
+        })
+        viewBinding.linear.addView(createButton("Get") {
+            runBlocking {
+                okDataStore.getString("name", "def_name")
+                    .collect {
+                        println("data:$it")
                     }
-                    .collect()
+
             }
         })
     }

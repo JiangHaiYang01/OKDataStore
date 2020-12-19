@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesKey
+import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 
@@ -17,50 +18,48 @@ interface Editor {
     suspend fun commit()
 }
 
+interface EditGet {
+    suspend fun getString(key: String, default: String): Flow<String>
+    suspend fun getInt(key: String): Int
+    suspend fun getBoolean(key: String): Boolean
+    suspend fun getFloat(key: String): Float
+    suspend fun getLong(key: String): Long
+}
+
 class EditorImpl(private val dataStore: DataStore<Preferences>) : Editor {
 
-    private val mEditorLock = Any()
 
     private val mModified = HashMap<String, Any>()
 
     override fun putString(key: String, value: String): Editor {
-        synchronized(mEditorLock) {
-            mModified[key] = value
-            return this
-        }
+        mModified[key] = value
+        return this
     }
 
     override fun putInt(key: String, value: Int): Editor {
-        synchronized(mEditorLock) {
-            mModified[key] = value
-            return this
-        }
+        mModified[key] = value
+        return this
     }
 
     override fun putLong(key: String, value: Long): Editor {
-        synchronized(mEditorLock) {
-            mModified[key] = value
-            return this
-        }
+        mModified[key] = value
+        return this
     }
 
     override fun putFloat(key: String, value: Float): Editor {
-        synchronized(mEditorLock) {
-            mModified[key] = value
-            return this
-        }
+        mModified[key] = value
+        return this
     }
 
     override fun putBoolean(key: String, value: Boolean): Editor {
-        synchronized(mEditorLock) {
-            mModified[key] = value
-            return this
-        }
+        mModified[key] = value
+        return this
     }
 
     override suspend fun commit() {
         dataStore.edit { dataStore ->
             mModified.forEach {
+                println("commit key:${it.key} value:${it.value}")
                 when (it.value::class) {
                     Int::class -> {
                         dataStore[preferencesKey<Int>(it.key)] = it.value as Int
