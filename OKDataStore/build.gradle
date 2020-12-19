@@ -48,6 +48,6 @@ dependencies {
     // Typed DataStore (Typed API surface, such as Proto)
     api "androidx.datastore:datastore:1.0.0-alpha05"
     //protobufy依赖项
-    api "com.google.protobuf:protobuf-javalite:3.10.0"
+    api 'com.google.protobuf:protobuf-javalite:3.14.0'
 }
 

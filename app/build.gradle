@@ -53,6 +53,8 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
     //OKDataStore
     implementation project(":OKDataStore")
+
+    implementation 'com.tencent:mmkv-static:1.2.6'
 }
 
 

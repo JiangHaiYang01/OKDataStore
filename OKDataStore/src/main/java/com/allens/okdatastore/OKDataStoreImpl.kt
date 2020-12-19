@@ -1,15 +1,20 @@
 package com.allens.okdatastore
 
 import android.content.Context
+import androidx.datastore.core.DataMigration
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.preferencesKey
 import androidx.datastore.preferences.createDataStore
 import kotlinx.coroutines.flow.*
 
 
-class OKDataStoreImpl(name: String, context: Context) : OKDataStore {
+class OKDataStoreImpl(
+    name: String,
+    context: Context,
+    migrations: List<DataMigration<Preferences>> = listOf()
+) : OKDataStore {
 
-    private var dataStore = context.createDataStore(name)
+    private var dataStore = context.createDataStore(name = name, migrations = migrations)
 
     override suspend fun edit(): Editor {
         return EditorImpl(dataStore)

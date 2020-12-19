@@ -1,14 +1,21 @@
 package com.allens.okdatastore
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.datastore.createDataStore
+import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.preferencesKey
+import androidx.datastore.preferences.createDataStore
 import com.allens.okdatastore.data.UserPreferencesSerializer
 import com.allens.okdatastore.databinding.ActivityMainBinding
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.flow.*
+import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.runBlocking
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
     private val viewBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -16,7 +23,53 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+
+        MMKV.initialize(this)
+
         val okDataStore = createOkDataStore("user")
+
+
+        viewBinding.linear.addView(createButton("SharePrepare") {
+            getSharedPreferences("user", MODE_PRIVATE)
+                .edit()
+                .putBoolean("bool", true)
+                .putString("name", "江海洋")
+                .putInt("age", 22)
+                .apply()
+
+            println(
+                getSharedPreferences("user", MODE_PRIVATE)
+                    .getString("name", "empty")
+            )
+        })
+
+
+        viewBinding.linear.addView(createButton("迁移") {
+            runBlocking {
+                createDataStore(
+                    name = "user",
+                    migrations = listOf(
+                        SharedPreferencesMigration(
+                            context = this@MainActivity,
+                            sharedPreferencesName = "user"
+                        )
+                    )
+                ).data.collect {
+                    println("秦怡 $it")
+                }
+            }
+
+        })
+
+        viewBinding.linear.addView(createButton("检查迁移是否成功") {
+            runBlocking {
+                createOkDataStore("user")
+                    .getString("name", "empty")
+                    .collect {
+                        println("迁移：$it")
+                    }
+            }
+        })
 
         viewBinding.linear.addView(createButton("add") {
             runBlocking {
@@ -86,6 +139,48 @@ class MainActivity : AppCompatActivity() {
                         println("completed:${it.showCompleted}")
                     }
             }
+        })
+
+
+        viewBinding.linear.addView(createButton("MMKV") {
+            val defaultMMKV = MMKV.defaultMMKV()
+            val time = measureTimeMillis {
+//                (1..10000).forEach {
+//                    MMKV.defaultMMKV().encode("index$it", "data is $it")
+//                }
+                (1..10000).forEach {
+                    println(defaultMMKV.decodeString("index$it"))
+                }
+            }
+            println("time:$time")
+
+
+        })
+
+        viewBinding.linear.addView(createButton("DataStore") {
+            runBlocking {
+                val dataStore: DataStore<Preferences> = createDataStore(
+                    name = "test"
+                )
+                val time = measureTimeMillis {
+//                    (1..10000).forEach {
+//                        val userName = preferencesKey<String>("index$it")
+//                        dataStore.edit { value ->
+//                                value[userName] = "data is $it"
+//                            }
+//                    }
+                    dataStore.data
+                        .collect {
+                            (1..10000).forEach { values ->
+                                val data = it[preferencesKey<String>("index$values")]
+                                println("data:$data")
+                            }
+                        }
+                }
+                println("time:$time")
+            }
+
+
         })
 
     }
