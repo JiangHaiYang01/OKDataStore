@@ -20,8 +20,6 @@ interface OKDataStore : EditGet {
 
 }
 
-//doEach: () -> Unit, doCatch: (Throwable) -> Unit
-
 class OKDataStoreImpl(name: String, context: Context) : OKDataStore {
 
     private var dataStore = context.createDataStore(name)
@@ -80,19 +78,43 @@ class OKDataStoreImpl(name: String, context: Context) : OKDataStore {
         }
     }
 
-    override suspend fun getInt(key: String): Int {
-        TODO("Not yet implemented")
+    override suspend fun getInt(key: String, default: Int): Flow<Int> {
+        return getValueFormKey(key).map {
+            if (it.second == null) {
+                default
+            } else {
+                it.second as Int
+            }
+        }
     }
 
-    override suspend fun getBoolean(key: String): Boolean {
-        TODO("Not yet implemented")
+    override suspend fun getBoolean(key: String, default: Boolean): Flow<Boolean> {
+        return getValueFormKey(key).map {
+            if (it.second == null) {
+                default
+            } else {
+                it.second as Boolean
+            }
+        }
     }
 
-    override suspend fun getFloat(key: String): Float {
-        TODO("Not yet implemented")
+    override suspend fun getFloat(key: String, default: Float): Flow<Float> {
+        return getValueFormKey(key).map {
+            if (it.second == null) {
+                default
+            } else {
+                it.second as Float
+            }
+        }
     }
 
-    override suspend fun getLong(key: String): Long {
-        TODO("Not yet implemented")
+    override suspend fun getLong(key: String, default: Long): Flow<Long> {
+        return getValueFormKey(key).map {
+            if (it.second == null) {
+                default
+            } else {
+                it.second as Long
+            }
+        }
     }
 }

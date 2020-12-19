@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         })
         viewBinding.linear.addView(createButton("Get") {
             runBlocking {
-                okDataStore.getString("name", "def_name")
+                okDataStore.getLong("long", 10)
                     .collect {
                         println("data:$it")
                     }

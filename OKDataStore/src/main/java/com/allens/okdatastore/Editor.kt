@@ -20,10 +20,10 @@ interface Editor {
 
 interface EditGet {
     suspend fun getString(key: String, default: String): Flow<String>
-    suspend fun getInt(key: String): Int
-    suspend fun getBoolean(key: String): Boolean
-    suspend fun getFloat(key: String): Float
-    suspend fun getLong(key: String): Long
+    suspend fun getInt(key: String, default: Int): Flow<Int>
+    suspend fun getBoolean(key: String, default: Boolean): Flow<Boolean>
+    suspend fun getFloat(key: String, default: Float): Flow<Float>
+    suspend fun getLong(key: String, default: Long): Flow<Long>
 }
 
 class EditorImpl(private val dataStore: DataStore<Preferences>) : Editor {
