@@ -1,6 +1,7 @@
 package com.allens.okdatastore
 
 import android.content.Context
+import androidx.datastore.core.Serializer
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.preferencesKey
 import androidx.datastore.preferences.createDataStore
@@ -8,6 +9,13 @@ import kotlinx.coroutines.flow.*
 
 fun Context.createOkDataStore(name: String): OKDataStore {
     return OKDataStoreImpl(name = name, context = this)
+}
+
+fun <T> Context.createOkDataStore(
+    fileName: String,
+    serializer: Serializer<T>
+): OKProtoDataStoreImpl<T> {
+    return OKProtoDataStoreImpl(fileName = fileName, serializer = serializer, context = this)
 }
 
 

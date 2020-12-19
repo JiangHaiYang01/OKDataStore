@@ -46,72 +46,43 @@ class OKDataStoreImpl(name: String, context: Context) : OKDataStore {
         }
 
 
-    private fun getValueFormKey(key: String): Flow<Pair<Preferences.Key<*>, Any?>> {
+    private fun <T> getValueFormKey(key: String, default: T): Flow<T> {
         return dataStore.data
             .map { it.asMap() }
             .flatMapConcat { requestFlow(it, key) }
-            .catch { println("error:${it.message}") }
             .onCompletion { println("complete") }
+            .map {
+                if (it.second == null) {
+                    default
+                } else {
+                    it.second as T
+                }
+            }
+            .catch { println("发生异常:${it.message}") }
     }
 
 
     override suspend fun getString(key: String, default: String): Flow<String> {
-        return getValueFormKey(key).map {
-            if (it.second == null) {
-                default
-            } else {
-                it.second as String
-            }
-        }
+        return getValueFormKey(key, default)
     }
 
     override suspend fun getInt(key: String, default: Int): Flow<Int> {
-        return getValueFormKey(key).map {
-            if (it.second == null) {
-                default
-            } else {
-                it.second as Int
-            }
-        }
+        return getValueFormKey(key, default)
     }
 
     override suspend fun getBoolean(key: String, default: Boolean): Flow<Boolean> {
-        return getValueFormKey(key).map {
-            if (it.second == null) {
-                default
-            } else {
-                it.second as Boolean
-            }
-        }
+        return getValueFormKey(key, default)
     }
 
     override suspend fun getFloat(key: String, default: Float): Flow<Float> {
-        return getValueFormKey(key).map {
-            if (it.second == null) {
-                default
-            } else {
-                it.second as Float
-            }
-        }
+        return getValueFormKey(key, default)
     }
 
     override suspend fun getLong(key: String, default: Long): Flow<Long> {
-        return getValueFormKey(key).map {
-            if (it.second == null) {
-                default
-            } else {
-                it.second as Long
-            }
-        }
+        return getValueFormKey(key, default)
     }
 
     override suspend fun getStringSet(key: String, default: Set<String>): Flow<Set<String>> {
-        return getValueFormKey(key).map {
-            if (it.second == null) {
-                default
-            } else {
-                it.second as Set<String>
-            }
-        }
+        return getValueFormKey(key, default)
     }
 }
