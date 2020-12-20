@@ -8,11 +8,15 @@ import androidx.datastore.preferences.core.preferencesKey
 import androidx.datastore.preferences.createDataStore
 import kotlinx.coroutines.flow.*
 
+/***
+ * @param cancel 默认发发送一个错误的Throwable 去结束Flow
+ */
 fun Context.createOkDataStore(
     name: String,
+    cancel: Boolean = true,
     migrations: List<DataMigration<Preferences>> = listOf()
 ): OKDataStore {
-    return OKDataStoreImpl(name = name, context = this, migrations = migrations)
+    return OKDataStoreImpl(name = name, context = this, cancel = cancel, migrations = migrations)
 }
 
 fun <T> Context.createOkDataStore(

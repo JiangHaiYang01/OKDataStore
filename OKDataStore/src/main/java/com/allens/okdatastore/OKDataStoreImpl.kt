@@ -5,12 +5,14 @@ import androidx.datastore.core.DataMigration
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.preferencesKey
 import androidx.datastore.preferences.createDataStore
+import kotlinx.coroutines.NonCancellable.cancel
 import kotlinx.coroutines.flow.*
 
 
 class OKDataStoreImpl(
     name: String,
     context: Context,
+    private val cancel: Boolean = true,
     migrations: List<DataMigration<Preferences>> = listOf()
 ) : OKDataStore {
 
@@ -30,23 +32,31 @@ class OKDataStoreImpl(
      * @param key 需要查找的key
      * @return Flow 发射一个流
      */
-    private fun requestFlow(
-        set: Map<Preferences.Key<*>, Any>,
-        key: String
-    ): Flow<Pair<Preferences.Key<*>, Any?>> =
+    private inline fun <reified T> requestFlow(
+        set: Map<Preferences.Key<*>, T>,
+        key: String,
+        default: T
+    ): Flow<Pair<Preferences.Key<*>, T>> =
         flow {
             var isSame = false
             set.forEach {
                 if (key == it.key.name) {
                     isSame = true
-                    emit(Pair(it.key, it.value))
-                    throw OKDataStoreThrowable()
+                    val pair = Pair(it.key, it.value)
+                    try {
+                        emit(pair)
+                        if (cancel)
+                            throw OKDataStoreThrowable()
+                    } catch (t: Throwable) {
+                        throw Throwable(t.message)
+                    }
                 }
             }
 
             if (!isSame) {
-                emit(Pair(preferencesKey<String>(key), null))
-                throw OKDataStoreThrowable()
+                emit(Pair(preferencesKey<String>(key), default))
+                if (cancel)
+                    throw OKDataStoreThrowable()
             }
         }
 
@@ -54,16 +64,9 @@ class OKDataStoreImpl(
     private fun <T> getValueFormKey(key: String, default: T): Flow<T> {
         return dataStore.data
             .map { it.asMap() }
-            .flatMapConcat { requestFlow(it, key) }
-            .onCompletion { println("complete") }
-            .map {
-                if (it.second == null) {
-                    default
-                } else {
-                    it.second as T
-                }
-            }
-            .catch { println("发生异常:${it.message}") }
+            .flatMapConcat { requestFlow(it, key, default) }
+            .cancellable()
+            .map { it.second as T }
     }
 
 
